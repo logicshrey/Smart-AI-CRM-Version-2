@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+{% block content %}
+
+<div class="row">
+  <div class="col-md-8">
+    <!-- Customer Details Card -->
+    <div class="card mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+          <i class="fas fa-user-circle me-2"></i>
+          {{ customer_record.first_name }} {{ customer_record.last_name }}
+        </h5>
+        <div>
+          <a href="{% url 'home' %}" class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i> Back
+          </a>
+          <a href="{% url 'update_record' customer_record.id %}" class="btn btn-outline-success btn-sm ms-2">
+            <i class="fas fa-edit me-1"></i> Edit
+          </a>
+          <a href="{% url 'delete_record' customer_record.id %}" class="btn btn-outline-danger btn-sm ms-2">
+            <i class="fas fa-trash me-1"></i> Delete
+          </a>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="row g-4">
+          <!-- Contact Information -->
+          <div class="col-md-6">
+            <h6 class="text-muted mb-3">Contact Information</h6>
+            <div class="mb-3">
+              <label class="small text-muted">Email</label>
+              <div class="d-flex align-items-center">
+                <i class="fas fa-envelope text-primary me-2"></i>
+                <a href="mailto:{{ customer_record.email }}" class="text-decoration-none">{{ customer_record.email }}</a>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="small text-muted">Phone</label>
+              <div class="d-flex align-items-center">
+                <i class="fas fa-phone text-primary me-2"></i>
+                <a href="tel:{{ customer_record.phone }}" class="text-decoration-none">{{ customer_record.phone }}</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Address Information -->
+          <div class="col-md-6">
+            <h6 class="text-muted mb-3">Address</h6>
+            <div class="mb-3">
+              <label class="small text-muted">Street Address</label>
+              <div class="d-flex align-items-center">
+                <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                {{ customer_record.address }}
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="small text-muted">City, State ZIP</label>
+              <div class="d-flex align-items-center">
+                <i class="fas fa-map text-primary me-2"></i>
+                {{ customer_record.city }}, {{ customer_record.state }} {{ customer_record.zipcode }}
+              </div>
+            </div>
+          </div>
+
+          <!-- AI Insights -->
+          <div class="col-12">
+            <hr>
+            <h6 class="text-muted mb-3">AI Insights</h6>
+            <div class="row g-3">
+              <div class="col-md-4">
+                <div class="card bg-light">
+                  <div class="card-body text-center">
+                    <i class="fas fa-user-tag fa-2x text-primary mb-2"></i>
+                    <h6 class="mb-1">Category</h6>
+                    <span class="badge bg-info">{{ customer_record.customer_category|default:"General"|title }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="card bg-light">
+                  <div class="card-body text-center">
+                    <i class="fas fa-smile fa-2x {% if customer_record.sentiment_score > 0 %}text-success{% else %}text-danger{% endif %} mb-2"></i>
+                    <h6 class="mb-1">Sentiment</h6>
+                    <span class="badge {% if customer_record.sentiment_score > 0 %}bg-success{% else %}bg-danger{% endif %}">
+                      {{ customer_record.sentiment_score|floatformat:2 }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="card bg-light">
+                  <div class="card-body text-center">
+                    <i class="fas fa-star fa-2x text-warning mb-2"></i>
+                    <h6 class="mb-1">Priority Score</h6>
+                    <div class="progress mt-2">
+                      <div class="progress-bar bg-warning priority-progress" role="progressbar" 
+                           data-score="{{ customer_record.priority_score|default:0|multiply:10 }}"
+                           aria-valuenow="{{ customer_record.priority_score|default:0|multiply:10 }}"
+                           aria-valuemin="0"
+                           aria-valuemax="100">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Transaction History -->
+          <div class="col-12">
+            <hr>
+            <h6 class="text-muted mb-3">Transaction History</h6>
+            <div class="table-responsive">
+              <table class="table table-sm">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>{{ customer_record.created_at|date:"M d, Y" }}</td>
+                    <td>
+                      <span class="badge bg-primary">{{ customer_record.transaction_type|default:"N/A"|title }}</span>
+                    </td>
+                    <td>${{ customer_record.amount|default:"0.00"|floatformat:2 }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-footer text-muted">
+        <small>
+          <i class="fas fa-clock me-1"></i>
+          Created on {{ customer_record.created_at|date:"F d, Y" }} at {{ customer_record.created_at|time:"g:i A" }}
+        </small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notes and Activity -->
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">
+          <i class="fas fa-sticky-note me-2"></i>
+          Notes & Activity
+        </h5>
+      </div>
+      <div class="card-body">
+        {% if customer_record.notes %}
+        <div class="note-card p-3 bg-light rounded mb-3">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="badge bg-secondary">Note</span>
+            <small class="text-muted">{{ customer_record.created_at|date:"M d, Y" }}</small>
+          </div>
+          <p class="mb-0">{{ customer_record.notes }}</p>
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+          <i class="fas fa-sticky-note fa-2x text-muted mb-2"></i>
+          <p class="text-muted mb-0">No notes available</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

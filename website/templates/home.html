@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block content %}
+
+{% if user.is_authenticated %}
+<div class="row g-4">
+  <!-- Quick Stats -->
+  <div class="col-12">
+    <div class="row g-4">
+      <div class="col-md-3">
+        <div class="card stat-card h-100">
+          <div class="card-body">
+            <i class="fas fa-users fa-2x text-primary mb-3"></i>
+            <h3 class="stat-number">{{ total_records }}</h3>
+            <p class="stat-label">Total Customers</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card stat-card h-100">
+          <div class="card-body">
+            <i class="fas fa-chart-line fa-2x text-success mb-3"></i>
+            <h3 class="stat-number">{{ vip_count }}</h3>
+            <p class="stat-label">VIP Customers</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card stat-card h-100">
+          <div class="card-body">
+            <i class="fas fa-exclamation-triangle fa-2x text-warning mb-3"></i>
+            <h3 class="stat-number">{{ anomaly_count }}</h3>
+            <p class="stat-label">Anomalies Detected</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card stat-card h-100">
+          <div class="card-body">
+            <i class="fas fa-smile fa-2x text-info mb-3"></i>
+            <h3 class="stat-number">{{ positive_sentiment }}%</h3>
+            <p class="stat-label">Positive Sentiment</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search and Actions -->
+  <div class="col-12">
+    <div class="card">
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-8">
+            <div class="search-bar">
+              <i class="fas fa-search"></i>
+              <input type="text" class="form-control smart-search" placeholder="Search customers using natural language...">
+            </div>
+          </div>
+          <div class="col-md-4 text-end">
+            <a href="{% url 'add_record' %}" class="btn btn-primary me-2">
+              <i class="fas fa-plus-circle me-1"></i> Add Record
+            </a>
+            <a href="{% url 'ai_dashboard' %}" class="btn btn-outline-primary">
+              <i class="fas fa-brain me-1"></i> AI Insights
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Records Table -->
+  <div class="col-12">
+    <div class="card">
+      <div class="card-body">
+        {% if records %}
+        <div class="table-responsive">
+          <table class="table datatable">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Category</th>
+                <th>Sentiment</th>
+                <th>Priority</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for record in records %}
+              <tr data-record-id="{{ record.id }}">
+                <td>
+                  <div class="d-flex align-items-center">
+                    <div class="avatar-sm bg-light rounded-circle me-2 d-flex align-items-center justify-content-center">
+                      <i class="fas fa-user text-primary"></i>
+                    </div>
+                    {{ record.first_name }} {{ record.last_name }}
+                  </div>
+                </td>
+                <td>{{ record.email }}</td>
+                <td>{{ record.phone }}</td>
+                <td>
+                  <span class="badge bg-info">{{ record.customer_category|default:"General" }}</span>
+                </td>
+                <td>
+                  <span class="badge {% if record.sentiment_score > 0 %}bg-success{% else %}bg-danger{% endif %}">
+                    {{ record.sentiment_score|floatformat:2 }}
+                  </span>
+                </td>
+                <td>
+                  <div class="progress">
+                    <div class="progress-bar bg-warning priority-progress" role="progressbar" 
+                         data-score="{{ record.priority_score|default:0|multiply:10 }}"
+                         aria-valuenow="{{ record.priority_score|default:0|multiply:10 }}"
+                         aria-valuemin="0"
+                         aria-valuemax="100">
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="btn-group">
+                    <a href="{% url 'record' record.id %}" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="View Details">
+                      <i class="fas fa-eye"></i>
+                    </a>
+                    <a href="{% url 'update_record' record.id %}" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Edit Record">
+                      <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="{% url 'delete_record' record.id %}" class="btn btn-sm btn-outline-danger table-action-btn" 
+                       data-action="delete" data-record-id="{{ record.id }}" data-bs-toggle="tooltip" title="Delete Record">
+                      <i class="fas fa-trash"></i>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+          <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+          <h5>No Records Found</h5>
+          <p class="text-muted">Start by adding your first customer record</p>
+          <a href="{% url 'add_record' %}" class="btn btn-primary">
+            <i class="fas fa-plus-circle me-1"></i> Add Record
+          </a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% else %}
+<div class="row justify-content-center align-items-center min-vh-75">
+  <div class="col-md-6 text-center">
+    <i class="fas fa-robot fa-5x text-primary mb-4"></i>
+    <h1 class="display-4 mb-4">Welcome to AI-Driven CRM</h1>
+    <p class="lead mb-4">Transform your customer relationships with the power of artificial intelligence</p>
+    <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+      <a href="{% url 'register' %}" class="btn btn-primary btn-lg px-4 gap-3">
+        <i class="fas fa-user-plus me-2"></i> Get Started
+      </a>
+      <a href="{% url 'home' %}" class="btn btn-outline-primary btn-lg px-4">
+        <i class="fas fa-sign-in-alt me-2"></i> Sign In
+      </a>
+    </div>
+    <div class="mt-5">
+      <form method="POST" action="{% url 'home' %}" class="card shadow-sm mx-auto max-width-400">
+        {% csrf_token %}
+        <div class="card-body">
+          <h3 class="card-title mb-4">Sign In</h3>
+          <div class="mb-3">
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-user"></i></span>
+              <input type="text" class="form-control" name="username" placeholder="Username" required>
+            </div>
+          </div>
+          <div class="mb-4">
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-lock"></i></span>
+              <input type="password" class="form-control" name="password" placeholder="Password" required>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="fas fa-sign-in-alt me-2"></i> Login
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

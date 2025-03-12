@@ -1,0 +1,162 @@
+{% load static %}
+<nav class="navbar navbar-expand-lg navbar-light sticky-top">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
+      <i class="fas fa-robot me-2"></i>
+      AI-Driven CRM
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        {% if user.is_authenticated %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'home' %}" data-bs-toggle="tooltip" title="View Dashboard">
+              <i class="fas fa-home me-1"></i> Home
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'add_record' %}" data-bs-toggle="tooltip" title="Add New Record">
+              <i class="fas fa-plus-circle me-1"></i> Add Record
+            </a>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="aiDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="fas fa-brain me-1"></i> AI Features
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end animate slideIn" aria-labelledby="aiDropdown">
+              <li>
+                <a class="dropdown-item" href="{% url 'ai_dashboard' %}">
+                  <i class="fas fa-chart-line me-2"></i> AI Dashboard
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="{% url 'anomaly_detection' %}">
+                  <i class="fas fa-exclamation-triangle me-2"></i> Anomaly Detection
+                </a>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#aiAssistantModal">
+                  <i class="fas fa-comments me-2"></i> Virtual Assistant
+                </a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="fas fa-user-circle me-1"></i> {{ user.username }}
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end animate slideIn" aria-labelledby="userDropdown">
+              <li>
+                <a class="dropdown-item" href="{% url 'update_user' %}">
+                  <i class="fas fa-user-cog me-2"></i> Settings
+                </a>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <a class="dropdown-item text-danger" href="{% url 'logout' %}">
+                  <i class="fas fa-sign-out-alt me-2"></i> Logout
+                </a>
+              </li>
+            </ul>
+          </li>
+        {% else %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'register' %}">
+              <i class="fas fa-user-plus me-1"></i> Register
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'home' %}">
+              <i class="fas fa-sign-in-alt me-1"></i> Login
+            </a>
+          </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- AI Assistant Modal -->
+<div class="modal fade" id="aiAssistantModal" tabindex="-1" aria-labelledby="aiAssistantModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="aiAssistantModalLabel">
+          <i class="fas fa-robot me-2"></i> Virtual Assistant
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="chat-container" style="height: 300px; overflow-y: auto;">
+          <div id="chat-messages" class="p-3">
+            <!-- Chat messages will be inserted here -->
+          </div>
+        </div>
+        <div class="input-group mt-3">
+          <input type="text" id="user-message" class="form-control" placeholder="Type your message...">
+          <button class="btn btn-primary" type="button" id="send-message">
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add custom styles for dropdown animation -->
+<style>
+.animate {
+  animation-duration: 0.3s;
+  -webkit-animation-duration: 0.3s;
+  animation-fill-mode: both;
+  -webkit-animation-fill-mode: both;
+}
+
+@keyframes slideIn {
+  0% {
+    transform: translateY(1rem);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0rem);
+    opacity: 1;
+  }
+  0% {
+    transform: translateY(1rem);
+    opacity: 0;
+  }
+}
+
+.slideIn {
+  -webkit-animation-name: slideIn;
+  animation-name: slideIn;
+}
+
+.chat-container {
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+  background-color: #f8f9fa;
+}
+
+.message {
+  margin: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  max-width: 80%;
+}
+
+.user-message {
+  background-color: #007bff;
+  color: white;
+  margin-left: auto;
+}
+
+.assistant-message {
+  background-color: #e9ecef;
+  color: #212529;
+  margin-right: auto;
+}
+</style>

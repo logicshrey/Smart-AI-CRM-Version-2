@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Customer Insights: {{ customer.first_name }} {{ customer.last_name }}</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card mb-3">
+                                <div class="card-header bg-info text-white">
+                                    Transaction Summary
+                                </div>
+                                <div class="card-body">
+                                    <h5>Total Transactions</h5>
+                                    <p class="h3">{{ insights.total_transactions }}</p>
+                                    
+                                    <h5 class="mt-3">Average Transaction Amount</h5>
+                                    <p class="h3">${{ insights.average_amount|floatformat:2 }}</p>
+                                    
+                                    <h5 class="mt-3">Transaction Frequency</h5>
+                                    <p class="h3">{{ insights.transaction_frequency|floatformat:1 }} per day</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-header bg-success text-white">
+                                    Behavioral Analysis
+                                </div>
+                                <div class="card-body">
+                                    <div class="alert alert-info">
+                                        <h5>Transaction Pattern Analysis</h5>
+                                        <ul class="list-unstyled">
+                                            {% if insights.transaction_frequency > 1 %}
+                                                <li>⭐ High-frequency customer with multiple daily transactions</li>
+                                            {% elif insights.transaction_frequency > 0.5 %}
+                                                <li>👍 Regular customer with consistent activity</li>
+                                            {% else %}
+                                                <li>📊 Occasional customer</li>
+                                            {% endif %}
+                                            
+                                            {% if insights.average_amount > 1000 %}
+                                                <li>💎 High-value transaction pattern</li>
+                                            {% elif insights.average_amount > 500 %}
+                                                <li>💫 Medium-value transaction pattern</li>
+                                            {% else %}
+                                                <li>📌 Standard transaction pattern</li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
+                                    
+                                    <div class="alert alert-success">
+                                        <h5>Recommendations</h5>
+                                        <ul class="list-unstyled">
+                                            {% if insights.transaction_frequency > 1 %}
+                                                <li>🎯 Consider offering a premium loyalty program</li>
+                                                <li>🌟 Provide priority support services</li>
+                                            {% elif insights.transaction_frequency > 0.5 %}
+                                                <li>🎁 Send periodic engagement offers</li>
+                                                <li>📱 Encourage mobile app usage</li>
+                                            {% else %}
+                                                <li>📧 Increase email engagement</li>
+                                                <li>💡 Share promotional offers</li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

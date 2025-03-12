@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Smart Workflows</h1>
+
+    <!-- Active Workflows -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Active Workflows</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Customer</th>
+                            <th>Type</th>
+                            <th>Priority</th>
+                            <th>Progress</th>
+                            <th>Next Step</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for workflow in active_workflows %}
+                        <tr>
+                            <td>{{ workflow.record.first_name }} {{ workflow.record.last_name }}</td>
+                            <td>
+                                <span class="badge {% if workflow.type == 'support' %}bg-danger{% elif workflow.type == 'sales' %}bg-success{% else %}bg-info{% endif %}">
+                                    {{ workflow.type|title }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge {% if workflow.priority == 'high' %}bg-danger{% else %}bg-warning{% endif %}">
+                                    {{ workflow.priority|title }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="progress">
+                                    <div class="progress-bar" role="progressbar" style="width: {{ workflow.progress }}%">
+                                        {{ workflow.progress }}%
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if workflow.next_step %}
+                                <div>
+                                    <strong>{{ workflow.next_step.action }}</strong><br>
+                                    <small class="text-muted">Due: {{ workflow.next_step.deadline|date:"M d, Y" }}</small>
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#workflowModal{{ workflow.id }}">
+                                    View Details
+                                </button>
+                            </td>
+                        </tr>
+
+                        <!-- Workflow Modal -->
+                        <div class="modal fade" id="workflowModal{{ workflow.id }}" tabindex="-1">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Workflow Details</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <h6>Customer: {{ workflow.record.first_name }} {{ workflow.record.last_name }}</h6>
+                                        <div class="mb-3">
+                                            <strong>Type:</strong> {{ workflow.type|title }}<br>
+                                            <strong>Priority:</strong> {{ workflow.priority|title }}<br>
+                                            <strong>Created:</strong> {{ workflow.created_at|date:"M d, Y H:i" }}
+                                        </div>
+                                        
+                                        <h6>Steps:</h6>
+                                        <div class="list-group mb-3">
+                                            {% for step in workflow.steps %}
+                                            <div class="list-group-item {% if step.completed %}list-group-item-success{% endif %}">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        {% if step.completed %}
+                                                        <i class="bi bi-check-circle-fill text-success"></i>
+                                                        {% else %}
+                                                        <i class="bi bi-circle"></i>
+                                                        {% endif %}
+                                                        {{ step.action }}
+                                                    </div>
+                                                    <div class="text-muted">
+                                                        <small>Due: {{ step.deadline|date:"M d, Y" }}</small>
+                                                    </div>
+                                                </div>
+                                                <div class="mt-2">
+                                                    <small class="text-muted">Assigned to: {{ step.assignee|title }}</small>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+
+                                        {% if not workflow.completed %}
+                                        <div class="mb-3">
+                                            <label class="form-label">Update Status:</label>
+                                            <select class="form-select" id="stepStatus{{ workflow.id }}">
+                                                <option value="">Select action...</option>
+                                                <option value="complete_step">Complete Current Step</option>
+                                                <option value="reassign">Reassign Step</option>
+                                                <option value="add_note">Add Note</option>
+                                            </select>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        {% if not workflow.completed %}
+                                        <button type="button" class="btn btn-primary" onclick="updateWorkflow({{ workflow.id }})">Update</button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create New Workflow -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Create New Workflow</h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Customer</label>
+                        <select class="form-select" name="customer_id" required>
+                            <option value="">Select customer...</option>
+                            {% for customer in customers %}
+                            <option value="{{ customer.id }}">{{ customer.first_name }} {{ customer.last_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Workflow Type</label>
+                        <select class="form-select" name="workflow_type" required>
+                            <option value="">Select type...</option>
+                            <option value="support">Support</option>
+                            <option value="sales">Sales</option>
+                            <option value="onboarding">Onboarding</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">&nbsp;</label>
+                        <button type="submit" class="btn btn-primary d-block">Create Workflow</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for workflow handling -->
+<script>
+function updateWorkflow(workflowId) {
+    const status = document.getElementById(`stepStatus${workflowId}`).value;
+    if (!status) {
+        alert('Please select an action');
+        return;
+    }
+    // Here you would typically send this to your backend
+    alert('Workflow updated successfully!');
+    bootstrap.Modal.getInstance(document.getElementById(`workflowModal${workflowId}`)).hide();
+}
+</script>
+{% endblock %}

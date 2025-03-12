@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>AI Engagement Hub</h1>
+
+    <!-- Customer Segments -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Customer Segments</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Customer</th>
+                            <th>Segment</th>
+                            <th>Category</th>
+                            <th>Recommendations</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record, segment in segments.items %}
+                        <tr>
+                            <td>{{ record.first_name }} {{ record.last_name }}</td>
+                            <td>
+                                <span class="badge {% if segment == 'High Value' %}bg-success{% elif segment == 'Need Attention' %}bg-danger{% else %}bg-warning{% endif %}">
+                                    {{ segment }}
+                                </span>
+                            </td>
+                            <td><span class="badge bg-info">{{ record.customer_category }}</span></td>
+                            <td>
+                                {% for rec in record.recommendations %}
+                                <div class="mb-1">
+                                    <span class="badge bg-secondary">{{ rec.type|title }}</span>
+                                    {{ rec.action }}
+                                </div>
+                                {% endfor %}
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#messageModal{{ record.id }}">
+                                    Send Message
+                                </button>
+                            </td>
+                        </tr>
+
+                        <!-- Message Modal -->
+                        <div class="modal fade" id="messageModal{{ record.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Send Personalized Message</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Suggested Messages:</label>
+                                            <div class="list-group">
+                                                <button class="list-group-item list-group-item-action" onclick="selectMessage(this)">
+                                                    {{ record.follow_up_message }}
+                                                </button>
+                                                <button class="list-group-item list-group-item-action" onclick="selectMessage(this)">
+                                                    {{ record.promo_message }}
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Message:</label>
+                                            <textarea class="form-control" rows="3" id="messageText{{ record.id }}"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        <button type="button" class="btn btn-primary" onclick="sendMessage({{ record.id }})">Send</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for message handling -->
+<script>
+function selectMessage(element) {
+    const modalId = element.closest('.modal').id;
+    const textareaId = modalId.replace('messageModal', 'messageText');
+    document.getElementById(textareaId).value = element.innerText;
+}
+
+function sendMessage(recordId) {
+    const message = document.getElementById(`messageText${recordId}`).value;
+    // Here you would typically send this to your backend
+    alert('Message sent successfully!');
+    bootstrap.Modal.getInstance(document.getElementById(`messageModal${recordId}`)).hide();
+}
+</script>
+{% endblock %}
